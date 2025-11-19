@@ -1,0 +1,51 @@
+﻿@model IEnumerable<IPLStore.Core.Entities.Order>
+
+@{
+    ViewData["Title"] = "Order History";
+}
+
+<h2>Order History</h2>
+
+@if (!Model.Any())
+{
+    <p>No orders placed yet.</p>
+}
+else
+{
+    foreach (var order in Model)
+    {
+        <div class="card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #ccc;">
+            <h4>Order #@order.Id</h4>
+            <p>Date: @order.OrderDate.ToLocalTime()</p>
+            <p>Total: @order.TotalAmount</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Franchise</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in order.Items)
+                    {
+                        var subtotal = item.UnitPrice * item.Quantity;
+                        <tr>
+                            <td>@item.Product?.Name</td>
+                            <td>@item.Product?.Franchise</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.UnitPrice</td>
+                            <td>@subtotal</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+<br />
+<a asp-controller="Products" asp-action="Index">Back to Products</a>
