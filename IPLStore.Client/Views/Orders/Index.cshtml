@@ -33,12 +33,12 @@ else
                 <tbody>
                     @foreach (var item in order.Items)
                     {
-                        var subtotal = item.UnitPrice * item.Quantity;
+                        var subtotal = item.Price * item.Quantity;
                         <tr>
                             <td>@item.Product?.Name</td>
                             <td>@item.Product?.Franchise</td>
                             <td>@item.Quantity</td>
-                            <td>@item.UnitPrice</td>
+                            <td>@item.Price</td>
                             <td>@subtotal</td>
                         </tr>
                     }

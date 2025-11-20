@@ -23,9 +23,11 @@
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">
-                                    Logout (@User.Identity.Name)
-                                </a>
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-link nav-link text-dark p-0 m-0 align-baseline">
+                                        Logout (@User.Identity.Name)
+                                    </button>
+                                </form>
                             </li>
                         }
                         else
@@ -39,10 +41,10 @@
                         }
 
 
-                        @* <li class="nav-item">
+                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Products" asp-action="Index">Products</a>
                         </li>
-                        <li class="nav-item">
+                        @* <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Cart" asp-action="Index">Cart</a>
                         </li>
                         <li class="nav-item">

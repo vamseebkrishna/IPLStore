@@ -1,44 +1,21 @@
-﻿@model IEnumerable<IPLStore.Core.Entities.Product>
+﻿@model IPLStore.Core.Entities.Product
 
-@{
+@{  
     Layout = "_Layout";
-    ViewData["Title"] = "IPL Store - Products";
+    ViewData["Title"] = "Product Details";
 }
 
-<h2>IPL Store - Products</h2>
+<h2>@Model.Name</h2>
+<p>@Model.Description</p>
+<p><strong>Franchise:</strong> @Model.Franchise</p>
+<p><strong>Type:</strong> @Model.Type</p>
+<p><strong>Price:</strong> @Model.Price</p>
 
-<form method="get" class="mb-3">
-    <input type="text" name="name" placeholder="Search by name" value="@ViewContext.HttpContext.Request.Query["name"]" />
-    <input type="text" name="type" placeholder="Type (Jersey, Cap, Flag...)" value="@ViewContext.HttpContext.Request.Query["type"]" />
-    <input type="text" name="franchise" placeholder="Franchise (CSK, MI, RCB...)" value="@ViewContext.HttpContext.Request.Query["franchise"]" />
-    <button type="submit">Search</button>
+<form asp-controller="Cart" asp-action="Add" method="post">
+    <input type="hidden" name="productId" value="@Model.Id" />
+    <label>Quantity:</label>
+    <input type="number" name="quantity" value="1" min="1" />
+    <button type="submit">Add to Cart</button>
 </form>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Franchise</th>
-            <th>Type</th>
-            <th>Price</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var p in Model)
-        {
-            <tr>
-                <td>@p.Name</td>
-                <td>@p.Franchise</td>
-                <td>@p.Type</td>
-                <td>@p.Price</td>
-                <td>
-                    <a asp-controller="Products" asp-action="Details" asp-route-id="@p.Id">View</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<a asp-controller="Cart" asp-action="Index">View Cart</a> |
-<a asp-controller="Orders" asp-action="Index">Order History</a>
+<a asp-action="Index">Back to Products</a>

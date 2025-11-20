@@ -42,7 +42,7 @@ public class OrdersController : ControllerBase
             {
                 ProductId = ci.ProductId,
                 Quantity = ci.Quantity,
-                UnitPrice = ci.Product!.Price
+                Price = ci.Product!.Price
             }).ToList()
         };
 

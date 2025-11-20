@@ -55,6 +55,7 @@ app.MapControllerRoute(
 // Default route = Product listing
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=Products}/{action=Index}/{id?}");
+
 
 app.Run();
