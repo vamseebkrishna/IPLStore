@@ -1,4 +1,5 @@
-﻿using IPLStore.Core.Entities;
+﻿using IPLStore.API.Models;
+using IPLStore.Core.Entities;
 using IPLStore.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,28 +17,25 @@ public class OrdersController : ControllerBase
         _db = db;
     }
 
-    // POST: api/orders/create
-    // Create an order from the user's cart
     public record CreateOrderRequest(string UserId);
 
+    // POST: api/orders/create
     [HttpPost("create")]
-    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
+    public async Task<ActionResult<OrderDto>> Create([FromBody] CreateOrderRequest req)
     {
         var cartItems = await _db.CartItems
-            .Where(ci => ci.UserId == request.UserId)
+            .Where(ci => ci.UserId == req.UserId)
             .Include(ci => ci.Product)
             .ToListAsync();
 
         if (!cartItems.Any())
             return BadRequest("Cart is empty.");
 
-        var total = cartItems.Sum(ci => (ci.Product?.Price ?? 0) * ci.Quantity);
-
         var order = new Order
         {
-            UserId = request.UserId,
+            UserId = req.UserId,
             OrderDate = DateTime.UtcNow,
-            TotalAmount = total,
+            TotalAmount = cartItems.Sum(ci => ci.Quantity * ci.Product!.Price),
             Items = cartItems.Select(ci => new OrderItem
             {
                 ProductId = ci.ProductId,
@@ -51,25 +49,63 @@ public class OrdersController : ControllerBase
 
         await _db.SaveChangesAsync();
 
-        // return created order id
-        return Ok(new { orderId = order.Id });
+        var savedOrder = await _db.Orders
+            .Include(o => o.Items)
+            .ThenInclude(i => i.Product)
+            .AsNoTracking()
+            .FirstAsync(o => o.Id == order.Id);
+
+        return Ok(ToDto(savedOrder));
     }
 
-    // GET: api/orders/user/demo-user
-    // Get order history for a user
+    // GET: api/orders/user/{id}
     [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetOrdersForUser(string userId)
+    public async Task<ActionResult<IEnumerable<OrderDto>>> History(string userId)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("UserId is required.");
-
         var orders = await _db.Orders
             .Where(o => o.UserId == userId)
             .Include(o => o.Items)
-            .ThenInclude(oi => oi.Product)
+            .ThenInclude(i => i.Product)
             .OrderByDescending(o => o.OrderDate)
+            .AsNoTracking()
             .ToListAsync();
 
-        return Ok(orders);
+        var result = orders.Select(ToDto).ToList();
+
+        return Ok(result);
     }
+
+    // GET: api/orders/{id}
+    [HttpGet("{id}")]
+    public async Task<ActionResult<OrderDto>> GetOrder(int id)
+    {
+        var o = await _db.Orders
+            .Include(o => o.Items)
+            .ThenInclude(i => i.Product)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (o == null)
+            return NotFound();
+
+        return Ok(ToDto(o));
+    }
+
+    private static OrderDto ToDto(Order o) =>
+        new OrderDto
+        {
+            Id = o.Id,
+            UserId = o.UserId,
+            OrderDate = o.OrderDate,
+            TotalAmount = o.TotalAmount,
+            Items = o.Items.Select(i => new OrderItemDto
+            {
+                ProductId = i.ProductId,
+                ProductName = i.Product?.Name ?? "",
+                FranchiseName = i.Product?.Franchise ?? "",
+                Type = i.Product?.Type ?? "",
+                Quantity = i.Quantity,
+                Price = i.Price
+            }).ToList()
+        };
 }

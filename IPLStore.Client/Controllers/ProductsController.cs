@@ -1,5 +1,4 @@
-﻿using IPLStore.Core.Entities;
-using Microsoft.AspNetCore.Authorization;
+﻿using IPLStore.Client.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Json;
 
@@ -7,21 +6,19 @@ namespace IPLStore.Client.Controllers;
 
 public class ProductsController : Controller
 {
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IHttpClientFactory _factory;
 
-    public ProductsController(IHttpClientFactory httpClientFactory)
+    public ProductsController(IHttpClientFactory factory)
     {
-        _httpClientFactory = httpClientFactory;
+        _factory = factory;
     }
 
-    // GET /Products?name=&type=&franchise=
     public async Task<IActionResult> Index(string? name, string? type, string? franchise)
     {
-        var client = _httpClientFactory.CreateClient("IPLApi");
+        var client = _factory.CreateClient("IPLApi");
 
         string url = "api/products";
 
-        // If any search parameters are provided, call the search endpoint
         if (!string.IsNullOrWhiteSpace(name) ||
             !string.IsNullOrWhiteSpace(type) ||
             !string.IsNullOrWhiteSpace(franchise))
@@ -37,20 +34,21 @@ public class ProductsController : Controller
             url = "api/products/search?" + string.Join("&", qs);
         }
 
-        var products = await client.GetFromJsonAsync<List<Product>>(url) ?? new List<Product>();
+        var products = await client.GetFromJsonAsync<List<ProductListDto>>(url)
+                       ?? new List<ProductListDto>();
 
         return View(products);
     }
 
-    // GET /Products/Details/5
     public async Task<IActionResult> Details(int id)
     {
-        var client = _httpClientFactory.CreateClient("IPLApi");
-        var product = await client.GetFromJsonAsync<Product>($"api/products/{id}");
+        var client = _factory.CreateClient("IPLApi");
 
-        if (product == null)
+        var dto = await client.GetFromJsonAsync<ProductDetailsDto>($"api/products/{id}");
+
+        if (dto == null)
             return NotFound();
 
-        return View(product);
+        return View(dto);
     }
 }

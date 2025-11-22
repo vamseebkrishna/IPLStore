@@ -1,4 +1,5 @@
-﻿using IPLStore.Core.Entities;
+﻿using IPLStore.API.Models;
+using IPLStore.Core.Entities;
 using IPLStore.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,70 +17,76 @@ public class CartController : ControllerBase
         _db = db;
     }
 
-    // DTO for add-to-cart request
+    // Request DTOs
     public record AddToCartRequest(string UserId, int ProductId, int Quantity);
+    public record ClearCartRequest(string UserId);
 
     // POST: api/cart/add
-    // Add product to cart
     [HttpPost("add")]
-    public async Task<IActionResult> AddToCart([FromBody] AddToCartRequest request)
+    public async Task<IActionResult> AddToCart([FromBody] AddToCartRequest req)
     {
-        if (request.Quantity <= 0)
+        if (req.Quantity <= 0)
             return BadRequest("Quantity must be at least 1.");
 
-        var product = await _db.Products.FindAsync(request.ProductId);
+        var product = await _db.Products.FindAsync(req.ProductId);
         if (product == null)
             return NotFound("Product not found.");
 
         var existing = await _db.CartItems
-            .FirstOrDefaultAsync(ci => ci.UserId == request.UserId && ci.ProductId == request.ProductId);
+            .FirstOrDefaultAsync(ci => ci.UserId == req.UserId && ci.ProductId == req.ProductId);
 
         if (existing == null)
         {
-            var cartItem = new CartItem
+            _db.CartItems.Add(new CartItem
             {
-                UserId = request.UserId,
-                ProductId = request.ProductId,
-                Quantity = request.Quantity
-            };
-
-            _db.CartItems.Add(cartItem);
+                UserId = req.UserId,
+                ProductId = req.ProductId,
+                Quantity = req.Quantity
+            });
         }
         else
         {
-            existing.Quantity += request.Quantity;
+            existing.Quantity += req.Quantity;
         }
 
         await _db.SaveChangesAsync();
         return Ok();
     }
 
-    // GET: api/cart?userId=demo-user
-    // Get cart items for a user
+    // GET: api/cart?userId=abc
     [HttpGet]
-    public async Task<IActionResult> GetCart([FromQuery] string userId)
+    public async Task<ActionResult<CartDto>> GetCart([FromQuery] string userId)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("UserId is required.");
-
         var items = await _db.CartItems
             .Where(ci => ci.UserId == userId)
             .Include(ci => ci.Product)
+            .AsNoTracking()
             .ToListAsync();
 
-        return Ok(items);
+        var dto = new CartDto
+        {
+            UserId = userId,
+            Items = items.Select(ci => new CartItemDto
+            {
+                Id = ci.Id,
+                ProductId = ci.ProductId,
+                ProductName = ci.Product?.Name ?? "",
+                FranchiseName = ci.Product?.Franchise ?? "",
+                Type = ci.Product?.Type ?? "",
+                UnitPrice = ci.Product?.Price ?? 0,
+                Quantity = ci.Quantity
+            }).ToList()
+        };
+
+        return Ok(dto);
     }
 
     // POST: api/cart/clear
-    // Clear the cart for a user
-    public record ClearCartRequest(string UserId);
-
-    [HttpPost("clear")]
-    public async Task<IActionResult> ClearCart([FromBody] ClearCartRequest request)
+    [HttpDelete("{userId}")]
+    public async Task<IActionResult> Clear(string userId)
     {
-        var items = _db.CartItems.Where(ci => ci.UserId == request.UserId);
+        var items = _db.CartItems.Where(ci => ci.UserId == userId);
         _db.CartItems.RemoveRange(items);
-
         await _db.SaveChangesAsync();
         return Ok();
     }

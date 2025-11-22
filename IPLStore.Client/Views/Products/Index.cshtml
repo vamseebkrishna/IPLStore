@@ -1,27 +1,32 @@
-﻿@model IEnumerable<IPLStore.Core.Entities.Product>
-
+﻿@model IEnumerable<IPLStore.Client.Models.Dto.ProductListDto>
 @{
     Layout = "_Layout";
     ViewData["Title"] = "IPL Store - Products";
 }
 
-<h2>IPL Store - Products</h2>
+<h2 class="mt-3 mb-3">IPL Store - Products</h2>
 
-<form method="get" class="mb-3">
-    <input type="text" name="name" placeholder="Search by name" value="@ViewContext.HttpContext.Request.Query["name"]" />
-    <input type="text" name="type" placeholder="Type (Jersey, Cap, Flag...)" value="@ViewContext.HttpContext.Request.Query["type"]" />
-    <input type="text" name="franchise" placeholder="Franchise (CSK, MI, RCB...)" value="@ViewContext.HttpContext.Request.Query["franchise"]" />
-    <button type="submit">Search</button>
+<form method="get" class="mb-4 d-flex gap-2">
+    <input type="text" name="name" class="form-control" placeholder="Search by name"
+           value="@Context.Request.Query["name"]" />
+
+    <input type="text" name="type" class="form-control" placeholder="Type (Cap, Jersey, Flag...)"
+           value="@Context.Request.Query["type"]" />
+
+    <input type="text" name="franchise" class="form-control" placeholder="Franchise (RCB, CSK...)"
+           value="@Context.Request.Query["franchise"]" />
+
+    <button type="submit" class="btn btn-primary">Search</button>
 </form>
 
-<table class="table">
-    <thead>
+<table class="table table-bordered table-hover">
+    <thead class="table-light">
         <tr>
             <th>Name</th>
             <th>Franchise</th>
             <th>Type</th>
             <th>Price</th>
-            <th></th>
+            <th style="width: 120px;"></th>
         </tr>
     </thead>
     <tbody>
@@ -29,16 +34,14 @@
         {
             <tr>
                 <td>@p.Name</td>
-                <td>@p.Franchise</td>
+                <td>@p.FranchiseName</td>
                 <td>@p.Type</td>
-                <td>@p.Price</td>
+                <td>₹@p.Price</td>
                 <td>
-                    <a asp-controller="Products" asp-action="Details" asp-route-id="@p.Id">View</a>
+                    <a asp-controller="Products" asp-action="Details" asp-route-id="@p.Id"
+                       class="btn btn-sm btn-outline-primary">View</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-
-<a asp-controller="Cart" asp-action="Index">View Cart</a> |
-<a asp-controller="Orders" asp-action="Index">Order History</a>
