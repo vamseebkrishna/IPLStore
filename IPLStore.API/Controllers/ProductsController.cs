@@ -1,7 +1,6 @@
-﻿using IPLStore.API.Models;
-using IPLStore.Infrastructure.Data;
+﻿using IPLStore.Application.Interfaces;
+using IPLStore.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace IPLStore.API.Controllers;
 
@@ -9,87 +8,42 @@ namespace IPLStore.API.Controllers;
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IProductService _productService;
 
-    public ProductsController(AppDbContext db)
+    public ProductsController(IProductService productService)
     {
-        _db = db;
+        _productService = productService;
     }
 
-    // GET: api/products
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductListDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
     {
-        var products = await _db.Products
-            .AsNoTracking()
-            .ToListAsync();
-
-        var result = products.Select(p => new ProductListDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            FranchiseName = p.Franchise,
-            Type = p.Type,
-            Price = p.Price,
-            ImageUrl = p.ImageUrl
-        }).ToList();
-
-        return Ok(result);
+        var products = await _productService.GetAllAsync();
+        return Ok(products);
     }
 
-    // GET: api/products/{id}
-    [HttpGet("{id}")]
-    public async Task<ActionResult<ProductDetailsDto>> GetById(int id)
+    //[HttpGet("{id:int}")]
+    //public async Task<ActionResult<ProductDto>> GetById(int id)
+    //{
+    //    var product = await _productService.GetByIdAsync(id);
+
+    //    if (product is null)
+    //        return NotFound();
+
+    //    return Ok(product);
+    //}
+
+    [HttpGet("details/{id}")]
+    public async Task<IActionResult> GetDetails(int id)
     {
-        var p = await _db.Products
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        if (p == null)
-            return NotFound();
-
-        return Ok(new ProductDetailsDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            FranchiseName = p.Franchise,
-            Type = p.Type,
-            Price = p.Price,
-            ImageUrl = p.ImageUrl,
-            Description = p.Description
-        });
+        var product = await _productService.GetDetailsAsync(id);
+        return product == null ? NotFound() : Ok(product);
     }
 
-    // GET: api/products/search
     [HttpGet("search")]
-    public async Task<ActionResult<IEnumerable<ProductListDto>>> Search(
-        [FromQuery] string? name,
-        [FromQuery] string? type,
-        [FromQuery] string? franchise)
+    public async Task<IActionResult> Search([FromQuery] string? name, [FromQuery] string? type, [FromQuery] string? franchise)
     {
-        var query = _db.Products.AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(name))
-            query = query.Where(p => p.Name.Contains(name));
-
-        if (!string.IsNullOrWhiteSpace(type))
-            query = query.Where(p => p.Type == type);
-
-        if (!string.IsNullOrWhiteSpace(franchise))
-            query = query.Where(p => p.Franchise == franchise);
-
-        var products = await query.AsNoTracking().ToListAsync();
-
-        var result = products.Select(p => new ProductListDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            FranchiseName = p.Franchise,
-            Type = p.Type,
-            Price = p.Price,
-            ImageUrl = p.ImageUrl
-        }).ToList();
-
-        return Ok(result);
+        var results = await _productService.SearchAsync(name, type, franchise);
+        return Ok(results);
     }
 }

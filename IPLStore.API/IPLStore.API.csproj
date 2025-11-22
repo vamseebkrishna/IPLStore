@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IPLStore.Application\IPLStore.Application.csproj" />
     <ProjectReference Include="..\IPLStore.Core\IPLStore.Core.csproj" />
     <ProjectReference Include="..\IPLStore.Infrastructure\IPLStore.Infrastructure.csproj" />
   </ItemGroup>

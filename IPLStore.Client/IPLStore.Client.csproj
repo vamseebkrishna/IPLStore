@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IPLStore.API\IPLStore.API.csproj" />
+    <ProjectReference Include="..\IPLStore.Application\IPLStore.Application.csproj" />
     <ProjectReference Include="..\IPLStore.Core\IPLStore.Core.csproj" />
   </ItemGroup>
 

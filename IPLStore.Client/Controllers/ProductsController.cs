@@ -1,4 +1,4 @@
-﻿using IPLStore.Client.Models.Dto;
+﻿using IPLStore.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Json;
 
@@ -17,38 +17,24 @@ public class ProductsController : Controller
     {
         var client = _factory.CreateClient("IPLApi");
 
-        string url = "api/products";
+        // Build query string
+        var query = $"api/products/search?name={name}&type={type}&franchise={franchise}";
 
-        if (!string.IsNullOrWhiteSpace(name) ||
-            !string.IsNullOrWhiteSpace(type) ||
-            !string.IsNullOrWhiteSpace(franchise))
-        {
-            var qs = new List<string>();
-            if (!string.IsNullOrWhiteSpace(name))
-                qs.Add($"name={Uri.EscapeDataString(name)}");
-            if (!string.IsNullOrWhiteSpace(type))
-                qs.Add($"type={Uri.EscapeDataString(type)}");
-            if (!string.IsNullOrWhiteSpace(franchise))
-                qs.Add($"franchise={Uri.EscapeDataString(franchise)}");
+        var products = await client.GetFromJsonAsync<IEnumerable<ProductDto>>(query);
 
-            url = "api/products/search?" + string.Join("&", qs);
-        }
-
-        var products = await client.GetFromJsonAsync<List<ProductListDto>>(url)
-                       ?? new List<ProductListDto>();
-
-        return View(products);
+        return View(products ?? Enumerable.Empty<ProductDto>());
     }
+
 
     public async Task<IActionResult> Details(int id)
     {
         var client = _factory.CreateClient("IPLApi");
 
-        var dto = await client.GetFromJsonAsync<ProductDetailsDto>($"api/products/{id}");
+        var product = await client.GetFromJsonAsync<ProductDetailsDto>($"api/products/details/{id}");
 
-        if (dto == null)
-            return NotFound();
+        if (product == null)
+            return RedirectToAction("Index");
 
-        return View(dto);
+        return View(product);
     }
 }

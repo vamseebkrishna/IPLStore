@@ -1,4 +1,4 @@
-﻿using IPLStore.Client.Models.Dto;
+﻿using IPLStore.Application.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Json;
@@ -16,28 +16,34 @@ public class OrdersController : Controller
         _userManager = userManager;
     }
 
-    private string UserId => _userManager.GetUserId(User)!;
+    private string? UserId => _userManager.GetUserId(User);
 
     public async Task<IActionResult> Index()
     {
+        if (!User.Identity!.IsAuthenticated)
+            return RedirectToAction("Login", "Account",
+                new { ReturnUrl = Url.Action("Index", "Orders") });
+
         var client = _factory.CreateClient("IPLApi");
 
-        var orders = await client.GetFromJsonAsync<List<OrderDto>>(
-            $"api/orders/user/{UserId}")
-            ?? new List<OrderDto>();
+        var orders = await client.GetFromJsonAsync<IEnumerable<OrderDto>>(
+            $"api/orders/{UserId}");
 
-        return View(orders);
+        return View(orders ?? Enumerable.Empty<OrderDto>());
     }
 
     [HttpPost]
-    public async Task<IActionResult> Checkout()
+    public async Task<IActionResult> Create()
     {
+        if (!User.Identity!.IsAuthenticated)
+            return RedirectToAction("Login", "Account");
+
         var client = _factory.CreateClient("IPLApi");
 
-        var payload = new { UserId = UserId };
+        var response = await client.PostAsync($"api/orders/{UserId}", null);
 
-        var response = await client.PostAsJsonAsync("api/orders/create", payload);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+            TempData["Error"] = "Cart is empty.";
 
         return RedirectToAction("Index");
     }

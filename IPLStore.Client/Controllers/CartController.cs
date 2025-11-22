@@ -1,4 +1,4 @@
-﻿using IPLStore.Client.Models.Dto;
+﻿using IPLStore.Application.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -17,54 +17,50 @@ public class CartController : Controller
         _userManager = userManager;
     }
 
-    private string UserId => _userManager.GetUserId(User)!;
+    private string? UserId => _userManager.GetUserId(User);
 
     public async Task<IActionResult> Index()
     {
-        var client = _factory.CreateClient("IPLApi");
-
-        // User not logged in → redirect immediately
-        if (!User.Identity.IsAuthenticated)
-        {
+        if (!User.Identity!.IsAuthenticated)
             return RedirectToAction("Login", "Account",
                 new { ReturnUrl = Url.Action("Index", "Cart") });
-        }
 
-        var response = await client.GetAsync($"api/cart?userId={UserId}");
+        var client = _factory.CreateClient("IPLApi");
 
-        // API returned 401 → redirect to login
+        var response = await client.GetAsync($"api/cart/{UserId}");
+
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             return RedirectToAction("Login", "Account",
-                new { ReturnUrl = Url.Action("Index", "Cart") });
+               new { ReturnUrl = Url.Action("Index", "Cart") });
         }
 
-        // Other errors → show empty cart
         if (!response.IsSuccessStatusCode)
-        {
-            return View(new CartDto { UserId = UserId });
-        }
+            return View(new CartDto { UserId = UserId! });
 
-        // Success → parse cart JSON
         var cart = await response.Content.ReadFromJsonAsync<CartDto>()
-                   ?? new CartDto { UserId = UserId };
+                   ?? new CartDto { UserId = UserId! };
 
         return View(cart);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Add(int productId, int quantity)
+    public async Task<IActionResult> Add(int productId, int quantity = 1)
     {
+        if (!User.Identity!.IsAuthenticated)
+        {
+            return RedirectToAction("Login", "Account",
+               new { ReturnUrl = Url.Action("Details", "Products", new { id = productId }) });
+        }
+
         var client = _factory.CreateClient("IPLApi");
 
-        var payload = new
+        await client.PostAsJsonAsync("api/cart/add", new
         {
             UserId = UserId,
             ProductId = productId,
             Quantity = quantity
-        };
-
-        await client.PostAsJsonAsync("api/cart/add", payload);
+        });
 
         return RedirectToAction("Index");
     }
@@ -72,16 +68,12 @@ public class CartController : Controller
     [HttpPost]
     public async Task<IActionResult> Clear()
     {
-        //var client = _factory.CreateClient("IPLApi");
-
-        //var payload = new { UserId = UserId };
-
-        //await client.PostAsJsonAsync("api/cart/clear", payload);
-
-        //return RedirectToAction("Index");
+        if (!User.Identity!.IsAuthenticated)
+            return RedirectToAction("Login", "Account");
 
         var client = _factory.CreateClient("IPLApi");
-        var response = await client.DeleteAsync($"api/cart/{UserId}");
+
+        await client.DeleteAsync($"api/cart/{UserId}");
 
         return RedirectToAction("Index");
     }
