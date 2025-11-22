@@ -47,4 +47,20 @@ public class OrdersController : Controller
 
         return RedirectToAction("Index");
     }
+
+    public async Task<IActionResult> GetOrders()
+    {
+        if (!User.Identity.IsAuthenticated)
+            return RedirectToAction("Login", "Account");
+
+        var userId = _userManager.GetUserId(User);
+
+        var client = _factory.CreateClient("IPLApi");
+
+        var orders = await client.GetFromJsonAsync<IEnumerable<OrderDto>>(
+            $"api/orders/{userId}");
+
+        return View("Index", orders);
+    }
+
 }

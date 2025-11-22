@@ -4,7 +4,14 @@
     ViewData["Title"] = "Order History";
 }
 
-<h2 class="mt-3 mb-3">Order History</h2>
+@if (User.Identity.IsAuthenticated)
+{
+    <h2>Order History</h2>
+}
+else
+{
+    <h2>Orders</h2>
+}
 
 @if (!Model.Any())
 {
