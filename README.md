@@ -56,19 +56,6 @@ The app includes a full product catalog, shopping cart system, checkout workflow
                    |        CORE LAYER     |
                    | Entities • Domain     |
                    +-----------------------+
-Mermaid Diagram
-flowchart TD
-
-A[MVC Client (Razor, Bootstrap)] --> B[API Layer<br>Controllers]
-B --> C[Application Layer<br>Services, DTOs, Interfaces]
-C --> D[Infrastructure Layer<br>EF Core, Repositories, Unit of Work]
-D --> E[Core Layer<br>Entities]
-
-style A fill:#0077cc,stroke:#003d66,color:#fff
-style B fill:#228be6,stroke:#0c4a6e,color:#fff
-style C fill:#495057,stroke:#212529,color:#fff
-style D fill:#343a40,stroke:#212529,color:#fff
-style E fill:#212529,stroke:#000,color:#fff
 
 🛠 Tech Stack
 
