@@ -57,6 +57,11 @@ The app includes a full product catalog, shopping cart system, checkout workflow
                    | Entities • Domain     |
                    +-----------------------+
 
+Mermaid Diagram flowchart TD
+
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/131c222c-4489-4ee3-9d70-3148c114ace7" />
+
+
 🛠 Tech Stack
 
 Backend
