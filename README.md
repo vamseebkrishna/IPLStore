@@ -188,25 +188,37 @@ MVC renders them in a responsive Bootstrap layout
 Clean, modular, enterprise-style workflow.
 
 ▶️ Getting Started
+
 1. Clone the repo
+   
    git clone https://github.com/vamseebkrishna/IPLStore
+   
    cd IPLStore
 
-2. Update connection string
+3. Update connection string
+   
    Edit in:
+   
    IPLStore.API/appsettings.json
+   
    Example:
+   
    "ConnectionStrings": {
   "DefaultConnection": "Server=.;Database=IPLStoreDb;Trusted_Connection=True;MultipleActiveResultSets=true"
    }
    
-3. Apply EF Core migrations
+5. Apply EF Core migrations
+   
    cd IPLStore.API
+   
    dotnet ef database update
 
-4. Run the application
+7. Run the application
+   
    cd IPLStore.Client
+   
    dotnet run
+   
    App will run at:
    https://localhost:7200  (or similar)
 
