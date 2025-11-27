@@ -2,28 +2,29 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<GenerateDocumentationFile>false</GenerateDocumentationFile>
-		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- Core should be referenced -->
-		<ProjectReference Include="..\IPLStore.Core\IPLStore.Core.csproj" />
-
-		<!-- Application MUST be referenced for Repository Pattern -->
-		<ProjectReference Include="..\IPLStore.Application\IPLStore.Application.csproj" />
+		<!-- Identity, IdentityUser, IdentityDBContext come from this -->
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- EF Core (for ApplicationDbContext access in services that need it) -->
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- These references were missing → this caused all errors -->
+		<ProjectReference Include="..\IPLStore.Application\IPLStore.Application.csproj" />
+		<ProjectReference Include="..\IPLStore.Core\IPLStore.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Services\" />
 	</ItemGroup>
 
 </Project>
